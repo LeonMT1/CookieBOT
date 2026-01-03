@@ -1,25 +1,28 @@
+import logging
+import os
+import configparser
+
 import discord
 import ezcord
-import os
-
 from dotenv import load_dotenv
 
-from utils import greeter_builder
 from logging_config import setup_logging
-import logging
-
-
-# SETTINGS 
-guild_id = 1333488718576877600
-log_channel = 1456840069460525136
-im_log_channel = 1456840129153863690
-welcome_channel = 1456842380870418564
+from utils import greeter_builder
 
 
 setup_logging()
 logger = logging.getLogger(__name__)
+parser = configparser.ConfigParser()
+parser.read('config.cfg')
 bot = ezcord.Bot(intents=discord.Intents.all(), debug_guilds=None, ready_event=None, language="de")
 bot.add_help_command()
+
+
+guild_id = int(parser['GENERAL']['guild_id'])
+log_channel = int(parser['MODERATION']['log_channel'])
+im_log_channel = int(parser['MODERATION']['im_log_channel'])
+welcome_channel = int(parser['WELCOME']['welcome_channel'])
+member_role = int(parser['WELCOME']['member_role'])
 
 
 @bot.event
@@ -39,8 +42,10 @@ async def on_member_join(member):
 
         file = discord.File("img/join.gif", filename="join.gif")
 
-        emuser = greeter_builder(title=":wave: Cool das du hier her gefunden hast!", description=f"Hallo {member.mention} wir hoffen das du viel Spaß auf diesen Server haben wirst ;).", color=discord.Color.orange(), member=member, image="join")
+        emuser = greeter_builder(title=":wave: Hallo! Cool das du hier her gefunden hast!", description=f"Hallo {member.mention} wir hoffen das du viel Spaß auf diesen Server haben wirst ;).", color=discord.Color.orange(), member=member, image="join")
         await bot.get_channel(welcome_channel).send(embed=emuser, file=file)
+        role = discord.utils.get(member.guild.roles, id=member_role)
+        await member.add_roles(role)
     else:
         logging.warning(f"{member} joined a Server that wasn´t configured")
 
@@ -58,11 +63,10 @@ async def on_member_remove(member):
         emuser = greeter_builder(title=":wave: Tschau! Er war noch viel zu jung um zu sterben.", description=f"Tschau {member.mention} hoffentlich kommst du bald zurück :(.", color=discord.Color.red(), member=member, image="leave")
         await bot.get_channel(welcome_channel).send(embed=emuser, file=file)
     else:
-        logging.warning(f"{member} left from a Server that wasn´t configured")
-
+        logging.warning(f"{member} left from a Server that wasn't configured")
 
 
 if __name__ == '__main__':
     load_dotenv()
     # bot.load_extension(cogs.chat)
-    bot.run(os.getenv("TESTTOKEN"))
+    bot.run(os.getenv(parser['GENERAL']['environment']))
