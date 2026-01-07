@@ -19,9 +19,9 @@ bot.add_help_command()
 
 
 guild_id = int(parser['GENERAL']['guild_id'])
-log_channel = int(parser['MODERATION']['log_channel'])
-im_log_channel = int(parser['MODERATION']['im_log_channel'])
-welcome_channel = int(parser['WELCOME']['welcome_channel'])
+log_channel = int(parser['CHANNELS']['log_channel'])
+im_log_channel = int(parser['CHANNELS']['im_log_channel'])
+welcome_channel = int(parser['CHANNELS']['welcome_channel'])
 member_role = int(parser['WELCOME']['member_role'])
 
 
@@ -68,5 +68,6 @@ async def on_member_remove(member):
 
 if __name__ == '__main__':
     load_dotenv()
-    # bot.load_extension(cogs.chat)
+    bot.load_extension("cogs.guess_number")
+    bot.load_extension("cogs.one_word")
     bot.run(os.getenv(parser['GENERAL']['environment']))
